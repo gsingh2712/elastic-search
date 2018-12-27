@@ -1,0 +1,43 @@
+At the heart of ES is inverted index
+Elastic Search is mostly used as an Analytics Engine -> this is called Aggregation 
+
+How does indexing works?
+
+1. Corpus of documents is collected
+2. followed by tokenization of text into words in the corpus (multiple ways to do such , sample given below))
+	1. Lower casing 
+	2. Removing punctation
+	3. splitting words
+        4. Freq of Words 
+        5. word index -> freq -> Soource Docs
+	
+        Sometimes word can split into substring to allow for all sorts of matches like yours can split like you , yours , your , our 
+
+Elastic Search is a distributed search and Analytics Engine which runs on Apache Lucene
+	Lucene is indexing and search library for high performance and full text search engine
+
+ES is a search and analytics engine 
+Features:
+	1. Distributed -> runs on 1000 of nodes
+	2. HA -> multiple copies
+	3. REST FULL API for CRUD operations
+	4. Powerful Query DSL -> Complex queries using json
+	5. Schemaless -> Index without an explicit schema, docs indexed need not follow specfic schema
+
+ES has whole host of use cases:-
+E commerce:-
+	1. Index Product Catalog, Inventory
+	2. AutoComplete Feature
+Video Sites:-
+	1. Indexing Title , tags , Categories of the videos to browse
+
+Analysis engine:-
+	1. Mining lots of data for insights
+
+Price Alerting platform
+
+Busisness Analytics and intelligence
+
+Elastic Cloud is Elastice Search + Kibana Offering on AWS 
+
+
