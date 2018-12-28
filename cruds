@@ -1,0 +1,167 @@
+curl -XGET 'localhost:9200/_cat/indices?v&pretty' -> to get indices
+curl -XGET 'localhost:9200/_cat/nodes?v&pretty' -> to get nodes
+curl -XGET 'localhost:9200/_cat/health?v&pretty' -> to get health of the cluster
+
+Creating indices
+
+curl -XPUT 'localhost:9200/products?&pretty' -> to create an index called products
+curl -XPUT 'localhost:9200/customers?&pretty' -> index coustomers
+curl -XPUT 'localhost:9200/orders?&pretty' -> index orders
+
+
+creating an entity inside products
+	1. type is compulsory -> mobile -> type of document
+	2. 1 -> id of the entry created -> otherwise ES provides one for you
+curl -XPUT 'localhost:9200/products/mobiles/1?&pretty' -d'
+> {
+> "name":"iphone 7",
+> "camera":"12MP",
+> "storage":"256GB",
+> "display":"4.7in",
+> "battery":"1,960 mAh",
+> "review":["Great phone ", "Best Phone so far", "Very Expensive"]
+> }
+> '
+{
+  "_index" : "products",
+  "_type" : "mobiles",
+  "_id" : "1",
+  "_version" : 1, -> 1st time created so version is 1
+  "result" : "created",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 1,
+    "failed" : 0
+  },
+  "created" : true
+}
+
+curl -XPOST 'localhost:9200/products/mobiles?pretty' -d'  --> if youd dont provide id use XPOST
+{
+"name":"iphone 6s",
+"camera":"12MP",
+"storage":"256GB",
+"display":"4.7in",
+"battery":"1,960 mAh",
+"review":["Great phone ", "Best Phone so far", "Very Expensive"]
+}
+'
+{
+  "_index" : "products",
+  "_type" : "mobiles",
+  "_id" : "AWfwEI01Oxgi5dZ8k0cK",
+  "_version" : 1,
+  "result" : "created",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 1,
+    "failed" : 0
+  },
+  "created" : true
+}
+
+curl -XPUT 'localhost:9200/products/mobiles/2?&pretty' -d'
+{
+"name":"Samsung Galaxy",
+"camera":"8MP",
+"storage":"128GB",
+"display":"5.2in",
+"battery":"1,500 mAh",
+"review":["Best Android Phone ", "I love it"]
+}                                                              
+'
+{
+  "_index" : "products",
+  "_type" : "mobiles",
+  "_id" : "2",
+  "_version" : 1,
+  "result" : "created",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 1,
+    "failed" : 0
+  },
+  "created" : true
+}
+
+curl -XPUT 'localhost:9200/products/mobiles/3?&pretty' -d'
+{
+"name":"Xiaomi Note",
+"camera":"10MP",
+"storage":"128GB",
+"display":"5.5in",
+"battery":"1,500 mAh",
+"review":["Really Love Xiaomi Productss", "Too large to use easily"]
+}           
+'
+{
+  "_index" : "products",
+  "_type" : "mobiles",
+  "_id" : "3",
+  "_version" : 1,
+  "result" : "created",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 1,
+    "failed" : 0
+  },
+  "created" : true
+}
+
+curl -XPUT 'localhost:9200/products/laptops/1?&pretty' -d'
+{
+"name":"MAc Book Pro",
+"storage":"500GB",
+"RAM":"8GB",
+"display":"13in",
+"os":"El Capitan",
+"battery":"1,960 mAh",
+"review":["Bulky for a MAc ", "Larger storage capacity is great"]
+}
+'
+
+
+curl -XPUT 'localhost:9200/products/laptops/2?&pretty' -d'
+{
+"name":"Dell",
+"storage":"1TB",
+"RAM":"8GB",
+"display":"14in",
+"os":"Windows 10",
+"review":["Great work Laptop", "Larger storage capacity is great"]
+}
+'
+
+UPDATE:-
+for updpating as well as  adding a new entry
+curl -XPOST 'localhost:9200/products/mobiles/2/_update?&pretty' -d'
+> {
+> "doc": {
+> "color":"black"
+>  }
+> }
+> '
+
+DELETE:-
+curl -XDELETE 'localhost:9200/products/mobiles/2_update?&pretty'
+{
+  "found" : true,
+  "_index" : "products",
+  "_type" : "mobiles",
+  "_id" : "2_update",
+  "_version" : 2,
+  "result" : "deleted",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 1,
+    "failed" : 0
+  }
+}
+
+DELETE without an id will delete the entire index 
+curl -XDELETE 'localhost:9200/customers?&pretty'
+{
+  "acknowledged" : true
+}
+
+

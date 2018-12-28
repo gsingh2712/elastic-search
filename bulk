@@ -1,0 +1,46 @@
+Bulk edits not possible
+
+Bulks operations allowed:-
+1. retrieve multiple docs
+2. index multiple docs
+3. multiple operations in one Command
+
+
+multy retreive using _mget command -> _mget API
+curl -XGET 'localhost:9200/_mget?&pretty' -d'
+{
+	"docs" : [
+	    {
+		"_index" : "products",
+		"_type" : "laptops",
+		"_id" : "1"
+	    },
+	    {
+		"_index" : "products",
+		"_type" : "laptops",
+		"_id" : "2"
+	    }
+        ]
+}
+'
+
+
+curl -XGET 'localhost:9200/products/laptops/_mget?&pretty' -d'
+{
+	"docs" : [
+	    {
+		"_id" : "1"
+	    },
+	    {
+		"_id" : "2"
+	    }
+        ]
+}
+'
+
+mutiple Operations via -> _bulk api
+operations like create delete update 
+Read about Curl commands for bulk operations
+Creates bulk customer entry in index customers and doc type personal
+check the json it does not need index and doc type details since they are in url
+curl -H "Content-Type: application/x-ndjson" -XPOST 'localhost:9200/customers/personal/_bulk?pretty&refresh' --data-binary @"customers_full.json"

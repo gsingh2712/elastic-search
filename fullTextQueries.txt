@@ -1,0 +1,52 @@
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+"query":{
+  "match" : { "name" : "gates" }
+  }
+}
+'
+Text search does not require exact match, looks for gates match in name field of doc,
+gates need not be excat match with word in TF index word 
+
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+"query":{
+  "match_phrase" : { "street" : "tompkins place" }
+  }
+}
+'
+
+match_phrase calls for exact match of the phrase
+
+{
+  "took" : 10,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 1,
+    "max_score" : 5.550005,
+    "hits" : [
+      {
+        "_index" : "customers",
+        "_type" : "personal",
+        "_id" : "AWfwrWXGOxgi5dZ8k0r6",
+        "_score" : 5.550005,
+        "_source" : {
+          "name" : "Bell Fitzgerald",
+          "age" : 35,
+          "gender" : "male",
+          "email" : "bellfitzgerald@talkalot.com",
+          "phone" : "+1 (958) 567-2131",
+          "street" : "173 Tompkins Place",
+          "city" : "Epworth",
+          "state" : "Puerto Rico, 2262"
+        }
+      }
+    ]
+  }
+}
+

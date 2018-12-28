@@ -1,0 +1,112 @@
+ES Query DSL
+Is a language that you use to specify what is it that you want to search,
+based on JSON interface
+
+Two Contexts of ES querries regarding a document
+1. Query Context -> Related to Scoring -> Relevance
+2. Filter Context -> Related to Matching -> Yes/NO
+	-> Used when we need exact matches, range queries or simply structured Data
+	-> Faster than querries in Query Context
+
+Api -> _search
+Search using query parameters
+curl -XGET 'localhost:9200/customers/_search?q=wyoming&pretty'
+Search wyoming anywhere in the doc in index customers in any doc type
+Sort the result
+curl -XGET 'localhost:9200/customers/_search?q=wyoming&sort=age:desc&pretty'
+
+Only search fo kentucky
+curl -XGET 'localhost:9200/customers/_search?q=state:kentucky&sort=age:asc&pretty' 
+
+curl -XGET 'localhost:9200/customers/_search?q=state:kentucky&from=10&size=2&pretty'
+from index 10 and only 2 documents
+
+Api -> _search
+Can be used via request body parmeters as well
+match everything (give all docs in products index) , size parameter is 3, give only 3 results
+curl -XGET 'localhost:9200/products/_search?pretty' -d'
+> {
+> "query":{ "match_all": {} },
+> "size":3
+> }
+> '
+
+Search multiple indices
+curl -XGET 'localhost:9200/products,customers/_search?pretty' 
+
+Search mulitple doc types
+curl -XGET 'localhost:9200/products/shoes,laptops/_search?pretty' 
+
+Query Params options is subset of Request 
+
+==================================================
+Source Filtering , discarding unwanted results at beginning
+
+Caveat when using 'term' in query should give exact match the word in inverse doc frequency
+
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+"query":{
+  "term" : { "name" : "gates" }
+  }
+}
+'
+{
+  "took" : 2,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 2,
+    "max_score" : 4.4631934,
+    "hits" : [
+      {
+        "_index" : "customers",
+        "_type" : "personal",
+        "_id" : "AWfwrWXIOxgi5dZ8k003",
+        "_score" : 4.4631934,
+        "_source" : {
+          "name" : "Gates Yates",
+          "age" : 44,
+          "gender" : "male",
+          "email" : "gatesyates@talkalot.com",
+          "phone" : "+1 (915) 427-2121",
+          "street" : "934 Strong Place",
+          "city" : "Chilton",
+          "state" : "Nevada, 7571"
+        }
+      },
+      {
+        "_index" : "customers",
+        "_type" : "personal",
+        "_id" : "AWfwrWXHOxgi5dZ8k0uv",
+        "_score" : 4.4337735,
+        "_source" : {
+          "name" : "Pugh Gates",
+          "age" : 59,
+          "gender" : "male",
+          "email" : "pughgates@talkalot.com",
+          "phone" : "+1 (984) 492-2283",
+          "street" : "194 Columbia Place",
+          "city" : "Sharon",
+          "state" : "Ohio, 3096"
+        }
+      }
+    ]
+  }
+}
+
+Only give feilds in _source that match st* regex
+
+curl -XGET 'localhost:9200/customers/_search?pretty' -d' 
+{
+"_source":"st*",
+"query":{
+  "term" : { "name" : "gates" }
+  }
+}
+'
+'

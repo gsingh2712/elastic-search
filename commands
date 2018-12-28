@@ -1,0 +1,36 @@
+Local machine mode:-
+Untar the package version
+
+cd  Users/gauravsingh/elastic-search/elasticsearch-5.4.0
+
+./bin/elasticsearch -> Starts with default config settings 
+	-> Cluster Name :- elasticsearch
+	-> node Name:- (see logs)(random] -> node name [QXRCoXr] -> QXRCoXr
+
+You multiple nodes to join same default cluster , by specifying the name of the cluster while starting the node
+
+Ex-
+./bin/elasticsearch -Ecluster.name=pluralsight_es -Enode.name=my_first_node
+Starts a cluster with the name and node with the name 
+
+Few Termenology :-
+ES runs on a cluster with mutiple machines
+Culster is a collection of nodes
+Single server in the cluster is called node
+Every node has a unique id
+Every node participates in Search , indexing 
+Nodes join the cluster using the cluster name
+Nodes can communicate with each other
+The machines have to be on same network
+
+An index in ES is like a logical grouping , like index for Product Catalogs in e commerce
+ES can have multiple indexes
+Documents in ES is represented with JSON
+Each doucment has type,
+Document Type is collection of Doucments with similar characteristics under a larger index
+Sharding of indexes happen across multiple nodes, meaning one node has only subset of index data 
+
+http://localhost:9200/ -> details of Cluster
+http://localhost:9200/_cat/health?&pretty -> health and cluster details
+http://localhost:9200/_cat/nodes?&pretty  -> details of node
+
