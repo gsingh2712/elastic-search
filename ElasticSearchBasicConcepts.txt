@@ -26,9 +26,12 @@ The machines have to be on same network
 An index in ES is like a logical grouping , like index for Product Catalogs in e commerce
 ES can have multiple indexes
 Documents in ES is represented with JSON
-Each doucment has type,
-Document Type is collection of Doucments with similar characteristics under a larger index
-Sharding of indexes happen across multiple nodes, meaning one node has only subset of index data 
+Each doucment has type, a collection of similar documents is called index.
+Document Type is collection of Doucments with similar characteristics/similar fields under a larger index
+Document is the basic unit of information that is indexed expressed as json, it must have a type as well as an Index
+Index and type are used to identify a set of documents
+Spliting of an Index across multiple nodes is called sharding, meaning one node has only subset of index data 
+Sharding is of an Index is done for search performance reasons as well as size bottleneck reason
 
 http://localhost:9200/ -> details of Cluster
 http://localhost:9200/_cat/health?&pretty -> health and cluster details
