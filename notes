@@ -9,9 +9,13 @@ How does indexing works?
 	2. Removing punctation
 	3. splitting words
         4. Freq of Words 
-        5. word index -> freq -> Soource Docs
+        5. word index -> freq -> Source Docs
 	
-        Sometimes word can split into substring to allow for all sorts of matches like yours can split like you , yours , your , our 
+        Sometimes word can split into substring/n-grams to allow for substring searches of matches like yours can split like you , yours , your , our 
+Indexing is at the heart of any search engine.
+This type of indexing is called Reverse indexing and is developed using a crawler to crwal all the documents.
+
+
 
 Elastic Search is a distributed search and Analytics Engine which runs on Apache Lucene
 	Lucene is indexing and search library for high performance and full text search engine
