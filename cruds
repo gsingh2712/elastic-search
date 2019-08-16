@@ -152,6 +152,7 @@ curl -XPUT 'localhost:9200/products/laptops/2?&pretty' -d'
 UPDATE:-
 for updpating as well as  adding a new entry in the json type
 _update command can be used add new feilds or update fields as well
+"doc" type field is compulsory in body parameters
 curl -XPOST 'localhost:9200/products/mobiles/2/_update?&pretty' -d'
 {
 "doc": {

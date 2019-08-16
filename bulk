@@ -4,9 +4,14 @@ Bulks operations allowed:-
 1. retrieve multiple docs
 2. index multiple docs
 3. multiple operations in one Command
-
+4. _mget is used for that
+5. Body parameter is compulsory
 
 multy retreive using _mget command -> _mget API
+Body parameters:-
+inside docs field we have an array 
+describing index , type of document and id of the  specific document 
+
 curl -XGET 'localhost:9200/_mget?&pretty' -d'
 {
 	"docs" : [
@@ -24,6 +29,7 @@ curl -XGET 'localhost:9200/_mget?&pretty' -d'
 }
 '
 
+In case you if you give index and type or both in URL , not need to specify it in Body 
 
 curl -XGET 'localhost:9200/products/laptops/_mget?&pretty' -d'
 {
@@ -39,7 +45,8 @@ curl -XGET 'localhost:9200/products/laptops/_mget?&pretty' -d'
 '
 
 mutiple Operations via -> _bulk api
-operations like create delete update 
+operations like create delete update
+these different operations will be passed as an body parameter to the request  
 Read about Curl commands for bulk operations
 Creates bulk customer entry in index customers and doc type personal
 check the json it does not need index and doc type details since they are in url
