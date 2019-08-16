@@ -2,47 +2,78 @@ ES Query DSL
 Is a language that you use to specify what is it that you want to search,
 based on JSON interface
 
-Two Contexts of ES querries regarding a document
-1. Query Context -> Related to Scoring -> Relevance
-2. Filter Context -> Related to Matching -> Yes/NO
+Two Contexts of ES searches regarding a document
+1. Query Context/searches -> Related to Scoring -> Relevance -> Search results in order of score
+2. Filter Context/searches -> Related to Matching -> Yes/NO
 	-> Used when we need exact matches, range queries or simply structured Data
 	-> Faster than querries in Query Context
+        -> No relevance score
+
+Use this to clear 
+curl -XDELETE 'localhost:9200/customers?pretty'
+then this 
+curl -H "Content-Type: application/x-ndjson" -XPOST 'localhost:9200/customers/personal/_bulk?pretty&refresh' --data-binary @"customers_full.json"
+
+to create your data set to practise search
+
+Search requests are made using _search api 
+
+curl -XGET 'localhost:9200/customers/_search?pretty'   
+---> Gets all the documents under customers index
 
 Api -> _search
 Search using query parameters
 curl -XGET 'localhost:9200/customers/_search?q=wyoming&pretty'
-Search wyoming anywhere in the doc in index customers in any doc type
+Search wyoming ANYWHERE in the doc in index customers in any doc type and is not specific to field
 Sort the result
 curl -XGET 'localhost:9200/customers/_search?q=wyoming&sort=age:desc&pretty'
 
-Only search fo kentucky
+Only search fo kentucky State , this will MATCH kentucky in state field , it is not exact match
+
 curl -XGET 'localhost:9200/customers/_search?q=state:kentucky&sort=age:asc&pretty' 
 
 curl -XGET 'localhost:9200/customers/_search?q=state:kentucky&from=10&size=2&pretty'
-from index 10 and only 2 documents
+from index 10 and only 2 documents (this is not index as in ES index but index in the result array)
+
+curl -XGET 'localhost:9200/customers/_search?q=state:kentucky&explain&pretty'
+-> it gives explation on search reasults and helps you debug the search
 
 Api -> _search
 Can be used via request body parmeters as well
-match everything (give all docs in products index) , size parameter is 3, give only 3 results
+You get search results in one go and the results are not paginated with the help of session id.
+
+
+query : -> to specify terms we want to match
+match_all :{} -> means  match all the documents (give all docs in products index),
+size  -> parameter is 3, give only 3 results
 curl -XGET 'localhost:9200/products/_search?pretty' -d'
-> {
-> "query":{ "match_all": {} },
-> "size":3
-> }
-> '
+{
+"query":{ "match_all": {} },
+"size":3
+}
+'
 
-Search multiple indices
-curl -XGET 'localhost:9200/products,customers/_search?pretty' 
+Sort the search result using body parameters instead of querry parameters
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+"query":{ "match_all": {} },
+"sort":{ "age":{ "order": "desc"} }
+}
+'
 
-Search mulitple doc types
-curl -XGET 'localhost:9200/products/shoes,laptops/_search?pretty' 
+Search multiple indices and get all the documents
+curl -XGET 'localhost:9200/products,customers/_search?pretty'
+
+Search mulitple doc types under same index
+curl -XGET 'localhost:9200/products/shoes,laptops/_search?pretty'
 
 Query Params options is subset of Request 
 
 ==================================================
 Source Filtering , discarding unwanted results at beginning
 
-Caveat when using 'term' in query should give exact match the word in inverse doc frequency
+Caveat when using 'term' in query matches "gates" in "name" field under _source in the results
+'term' is used to specify the field where you want to invoke matching
 
 curl -XGET 'localhost:9200/customers/_search?pretty' -d'
 {
@@ -99,6 +130,7 @@ curl -XGET 'localhost:9200/customers/_search?pretty' -d'
   }
 }
 
+Pruning of the result set to remove unnecessary info is specifying fields in _source
 Only give feilds in _source that match st* regex
 
 curl -XGET 'localhost:9200/customers/_search?pretty' -d' 
@@ -109,4 +141,180 @@ curl -XGET 'localhost:9200/customers/_search?pretty' -d'
   }
 }
 '
+
+
+This is how to specify multiple fields needed in result
+curl -XGET 'localhost:9200/customers/_search?pretty' -d' 
+{
+"_source":["street","city"],
+"query":{
+  "term" : { "name" : "gates" }
+  }
+}
 '
+
+This is how to specify multiple fields under source using
+asteriks, needed in result
+curl -XGET 'localhost:9200/customers/_search?pretty' -d' 
+{
+"_source":["st*","n*"],
+"query":{
+  "term" : { "name" : "gates" }
+  }
+}
+
+How does match works in DSL
+"match" is used search the terms (multiple terms) we are interested in text of our document
+curl -XGET 'localhost:9200/customers/_search?pretty' -d' 
+{
+"query":{
+  "match" : { 
+	"name" : "webster" 
+	}
+  }
+}
+'
+
+match keyword can be used for phrases as well i.e multiple words that are specified for "query" field and
+providing the "operator" value depending on type of match
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+	"query":{
+  		"match" : { 
+        		"name" : {
+		 	   "query" : "frank norris",
+			   "operator" : "or"				
+	 		}
+  		}
+	}
+}
+'
+
+If no operator provided ES assumes default is or
+Given below will match any one of "tomplins" or "place"
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+	"query":{
+  		"match" : { 
+        		"street" : "tompkins place"
+  		}
+	}
+}
+
+"match_phrase" on the other hand tries to match all the words"
+
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+	"query":{
+  		"match_phrase" : { 
+        		"street" : "tompkins place"
+  		}
+	}
+}
+'
+
+COMPOUND QUERIES
+
+Boolean querry is type of compound querry identified by "bool" keyword
+different keywords within  a Boolean query allowing you to express range of searches 
+"must" -> clause must occur in matching documents
+"should" -> may or may not appear in matching documents
+"must_not" -> search term should not be present in the document
+"filer" -> clause must appear in the document but results are not scored (Filter context is a Boolean Query)
+
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+	"query":{
+  		"bool" : {
+		 	"must" : [
+				{ "match": { "street" : "ditmas"} },
+				{ "match": { "street" : "avenue"} }
+			]
+  		}
+	}
+}'
+
+
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+	"query":{
+  		"bool" : {
+		 	"should" : [
+				{ "match": { "street" : "ditmas"} },
+				{ "match": { "street" : "avenue"} }
+			]
+  		}
+	}
+}'
+
+
+customer must not be from california or texas
+and customer strret must not be lane or street
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+	"query":{
+  		"bool" : {
+		 	"must_not" : [
+				{ "match": { "state" : "california texas"} },
+				{ "match": { "street" : "lane street"} }
+			]
+  		}
+	}
+}'
+
+"term" keyword is used for term querries dont see much difference other than "match" except when
+used with parameter "boost""
+
+
+FILTER CONTEXT
+
+No Relevance Ranking
+Simple Yes/No 
+Common filter used filter is 
+
+"range" filter
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+        "query":{
+                "bool" : {
+                        "must" : { "match_all": {} },
+			"filter" : {
+				"range" : {
+					"age" : {
+						"gte": 20,
+						"lte" : 30
+					}
+				}
+			}
+                }
+        }
+}'
+
+
+Search Query along with filter hence results will have score
+"term" keyword in filter will give rise to exact match
+curl -XGET 'localhost:9200/customers/_search?pretty' -d'
+{
+        "query":{
+                "bool" : {
+                        "must" : {
+				"match" : {
+					"state" : "alabama"
+				}
+			},
+			"filter" : [
+        		   {
+				"term" : { "gender":"female" }
+			   },
+			   {   
+				"range" : {
+					"age" : {
+						"gte": "50"
+					}
+				}
+			   }
+			]
+                }
+        }
+}'
+
