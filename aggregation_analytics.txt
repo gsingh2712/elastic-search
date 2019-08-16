@@ -1,0 +1,114 @@
+Aggregations:- Metric , Bucketing , Matrix , Pipeline 
+
+Metric :- Aggregations over a set of documents (logical group of documents)
+Bucketing :- 
+	Logically group document based on search query
+	A document falls into a bucket if criteria matches
+	Each bukcet associated with a key
+	
+Pipeline :-
+	Aggregations that allow one set of aggregations to work as input to 
+	other set of aggregations
+
+METRIC:-
+Numeric aggrgations
+Sum, avg , count , min , max etcc.
+
+use api _search
+
+aggs -> keyword for aggregation query
+avg_age -> name of the result column
+avg -> keyword to tell I want to perfrom avg
+size -> keyword to tell how many documents to return that are part of this aggregation
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+	"size":0 ,
+	"aggs" : {
+		"avg_age" : {
+			"avg" : {
+				"field" : "age"
+			}
+		}
+	}
+}'
+
+
+
+aggregation along with query
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+	"size":0 ,
+	"query" : {
+		"bool" : {
+			"filter" : {
+				"match" : { "state" : "minnesota"}
+			}
+		}
+	},
+	"aggs" : {
+		"avg_age" : {
+			"avg" : {
+				"field" : "age"
+			}
+		}
+	}
+}'
+
+Cardinaltiy Aggregaitions
+
+Cardinality means the number of unique values in a field 
+
+You need to enable fielddata for text fields via mappings 
+
+cardinality on field age -> unique values of age along the index 
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{       
+        "size":0 ,
+        "aggs" : {
+                "age_count" : { 
+                        "cardinality" : {
+                                "field" : "age"
+                        }
+                }
+        }
+}'
+
+cardinality on gender -> 
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+        "size":0 ,
+        "aggs" : {
+                "gender_count" : { 
+                        "cardinality" : {
+                                "field" : "gender"
+                        }
+                }
+        }
+}'
+
+--> wont work because gender is a text value and aggregations work on actual data 
+rather than hashes of Tf IDF as in case of searches
+this is where we use fielddata this uses memory and causes memory hob and is disabled by default
+
+-> use _mapping api to enable then run the query
+
+curl -XPOST 'localhost:9200/customers/_mapping/personal?pretty' -d'
+{
+     "properties" : {
+          "gender" : {
+                   "type" : "text",
+		   "fielddata" : true
+          }
+     }
+}'
+
+
+BUCKETING AGGREGATION -> GROUP By in SQL
+
+
+
+
+
