@@ -1,3 +1,5 @@
+./bin/elasticsearch -Ecluster.name=elastic_tutorial -Enode.name=my_first_node
+
 curl -XGET 'localhost:9200/_cat/indices?v&pretty' -> to get indices
 curl -XGET 'localhost:9200/_cat/nodes?v&pretty' -> to get nodes
 curl -XGET 'localhost:9200/_cat/health?v&pretty' -> to get health of the cluster
@@ -5,6 +7,9 @@ curl -XGET 'localhost:9200/_cat/health?v&pretty' -> to get health of the cluster
 Creating indices
 
 curl -XPUT 'localhost:9200/products?&pretty' -> to create an index called products
+	-XPUT since it is a create command while -XPOST is for update
+	-It is defacto for Rest call that PUT is for create and POST is for update
+
 curl -XPUT 'localhost:9200/customers?&pretty' -> index coustomers
 curl -XPUT 'localhost:9200/orders?&pretty' -> index orders
 
@@ -12,16 +17,17 @@ curl -XPUT 'localhost:9200/orders?&pretty' -> index orders
 creating an entity inside products
 	1. type is compulsory -> mobile -> type of document
 	2. 1 -> id of the entry created -> otherwise ES provides one for you
+        3. Request Body is provided by -d parameter
 curl -XPUT 'localhost:9200/products/mobiles/1?&pretty' -d'
-> {
-> "name":"iphone 7",
-> "camera":"12MP",
-> "storage":"256GB",
-> "display":"4.7in",
-> "battery":"1,960 mAh",
-> "review":["Great phone ", "Best Phone so far", "Very Expensive"]
-> }
-> '
+{
+"name":"iphone 7",
+"camera":"12MP",
+"storage":"256GB",
+"display":"4.7in",
+"battery":"1,960 mAh",
+"review":["Great phone ", "Best Phone so far", "Very Expensive"]
+}
+'
 {
   "_index" : "products",
   "_type" : "mobiles",
@@ -36,7 +42,9 @@ curl -XPUT 'localhost:9200/products/mobiles/1?&pretty' -d'
   "created" : true
 }
 
-curl -XPOST 'localhost:9200/products/mobiles?pretty' -d'  --> if youd dont provide id use XPOST
+
+--> if youd dont provide id use XPOST for creating the document 
+curl -XPOST 'localhost:9200/products/mobiles?pretty' -d'
 {
 "name":"iphone 6s",
 "camera":"12MP",
@@ -108,6 +116,8 @@ curl -XPUT 'localhost:9200/products/mobiles/3?&pretty' -d'
   "created" : true
 }
 
+Another document of another type
+
 curl -XPUT 'localhost:9200/products/laptops/1?&pretty' -d'
 {
 "name":"MAc Book Pro",
@@ -119,6 +129,13 @@ curl -XPUT 'localhost:9200/products/laptops/1?&pretty' -d'
 "review":["Bulky for a MAc ", "Larger storage capacity is great"]
 }
 '
+
+Get Call Querry
+
+curl -GET 'localhost:9200/products/mobiles/1?&pretty'
+In case you want only certain fields
+curl -GET 'localhost:9200/products/mobiles/1?pretty&_source=name,review'
+
 
 
 curl -XPUT 'localhost:9200/products/laptops/2?&pretty' -d'
@@ -133,14 +150,35 @@ curl -XPUT 'localhost:9200/products/laptops/2?&pretty' -d'
 '
 
 UPDATE:-
-for updpating as well as  adding a new entry
+for updpating as well as  adding a new entry in the json type
+_update command can be used add new feilds or update fields as well
 curl -XPOST 'localhost:9200/products/mobiles/2/_update?&pretty' -d'
-> {
-> "doc": {
-> "color":"black"
->  }
-> }
-> '
+{
+"doc": {
+"color":"black"
+ }
+}
+'
+Adding new category shoe
+curl -XPUT 'localhost:9200/products/shoes/1?&pretty' -d'
+{
+"name":"Nike",
+"size":"8",
+"color":"black"
+}
+'
+
+curl -XPUT 'localhost:9200/products/shoes/2?&pretty' -d'
+{
+"name":"Adidas",
+"size":"8",
+"color":"black"
+}
+'
+
+To check for prsence use XHEAD
+curl -i -XHEAD 'localhost:9200/products/shoes/2?&pretty'
+
 
 DELETE:-
 curl -XDELETE 'localhost:9200/products/mobiles/2_update?&pretty'
