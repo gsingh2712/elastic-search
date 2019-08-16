@@ -108,7 +108,274 @@ curl -XPOST 'localhost:9200/customers/_mapping/personal?pretty' -d'
 
 BUCKETING AGGREGATION -> GROUP By in SQL
 
+"terms" -> keyword used to define buckets
+If result is huge ES may return only topmost results based on bucket size
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+	"size":0 ,
+	"aggs" : {
+		"gender_bucket" : {
+			"terms" : {
+				"field" : "gender"
+			}
+		}
+	}
+}'
+{
+  "took" : 18,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 1000,
+    "max_score" : 0.0,
+    "hits" : [ ]
+  },
+  "aggregations" : {
+    "gender_bucket" : {
+      "doc_count_error_upper_bound" : 0,
+      "sum_other_doc_count" : 0,
+      "buckets" : [
+        {
+          "key" : "male", -> Each bucket has a key associated with it
+          "doc_count" : 516
+        },
+        {
+          "key" : "female",
+          "doc_count" : 484
+        }
+      ]
+    }
+  }
+}
+
+
+bucketing on age 
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+        "size":0 ,
+        "aggs" : {
+                "age_bucket" : {
+                        "terms" : {
+                                "field" : "age"
+                        }
+                }
+        }
+}'
+{
+  "took" : 12,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 5,
+    "successful" : 5,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : 1000,
+    "max_score" : 0.0,
+    "hits" : [ ]
+  },
+  "aggregations" : {
+    "age_bucket" : {
+      "doc_count_error_upper_bound" : 18, -> since seach across shards can be imperfect it says doc count cannot be more off by 18
+      "sum_other_doc_count" : 815, -> other buckets are also there but sum across them cannot is 815 and irrelevant 
+      "buckets" : [
+        {
+          "key" : 49,
+          "doc_count" : 23
+        },
+        {
+          "key" : 58,
+          "doc_count" : 19
+        },
+        {
+          "key" : 59,
+          "doc_count" : 19
+        },
+        {
+          "key" : 72,
+          "doc_count" : 19
+        },
+        {
+          "key" : 18,
+          "doc_count" : 18
+        },
+        {
+          "key" : 31,
+          "doc_count" : 18
+        },
+        {
+          "key" : 34,
+          "doc_count" : 18
+        },
+        {
+          "key" : 20,
+          "doc_count" : 17
+        },
+        {
+          "key" : 42,
+          "doc_count" : 17
+        },
+        {
+          "key" : 70,
+          "doc_count" : 17
+        }
+      ]
+    }
+  }
+}
 
 
 
+bucketing on age with filter
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{       
+        "size":0 ,
+        "aggs" : {
+                "age_ranges" : {
+                        "range" : {
+                                "field" : "age",
+				"ranges": [
+					{ "to" : 30},
+					{ "from" : 30 , "to" : 40},
+					{ "from" : 40 , "to" : 55},
+					{ "from" : 55 }
+				]
+                        }
+                }
+        }
+}'
 
+bucketing on age with filter , with better structring of results
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+        "size":0 ,
+        "aggs" : {
+                "age_ranges" : {
+                        "range" : {
+                                "field" : "age",
+                                "ranges": [
+                                        { "key":"young" , "to" : 30},
+                                        { "key":"quarter-aged", "from" : 30 , "to" : 40},
+                                        { "key":"middle-age", "from" : 40 , "to" : 55},
+                                        { "key":"old", "from" : 55 }
+                                ]
+                        }
+                }
+        }
+}
+
+
+BUCKETING WITH METRICS AGGREGATION -> Multilevel Nested Aggregation 
+
+avg age of each gender (2 Level Aggregation)
+
+First level of of aggs on gender
+Second level of aggregation on age 
+
+--> For every gender we want to calculate the avg. age.
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{       
+        "size":0 ,
+        "aggs" : {
+            "gender_bucket" : {
+                        "terms" : {
+                                "field" : "gender"
+                        },
+			"aggs" : {
+				"average_age" : {
+						"avg" : {
+							"field" : "age"
+						}
+				}	
+			}
+            	}
+        }
+}
+
+
+
+FILTER AGGREGATIONS
+
+Filter aggregation (also a nested aggregation)
+
+Gives Avg age in Texas 
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+        "aggs" : {
+            "state" : {
+                        "filter" : {
+                                "term" : { "state":"texas" }
+			},
+                	"aggs" : {
+                        	"average_age" : {
+                                	"avg" : {
+                                        	"field" : "age"
+                                	}
+                        	}
+                	}
+             }
+       }
+}'
+
+USING "filters" keyword (notice it's plural) you can specify multiple states that you want to match against
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+        "aggs" : {
+            "states" : {
+                        "filters" : {
+				"filters" : {
+					"washington" : { "match" : { "state" : "washington" }},
+					"north carlina" : { "match" : { "state" : "north carolina" }},
+					"south dakota" : { "match" : { "state" : "south dakota"}}
+				}
+                	}
+             }
+       }
+}'
+"aggregations" : {
+    "states" : {
+      "buckets" : {
+        "north carlina" : {
+          "doc_count" : 53
+        },
+        "south dakota" : {
+          "doc_count" : 52
+        },
+        "washington" : {
+          "doc_count" : 17
+        }
+      }
+   }
+}
+
+
+Avg age across washington , north carolina , south dakota
+
+curl -XPOST 'localhost:9200/customers/_search?&pretty' -d'
+{
+        "aggs" : {
+            "states" : {
+                        "filters" : {
+				"filters" : {
+					"washington" : { "match" : { "state" : "washington" }},
+					"north carlina" : { "match" : { "state" : "north carolina" }},
+					"south dakota" : { "match" : { "state" : "south dakota"}}
+				}
+                	},
+                	"aggs" : {
+                        	"average_age" : {
+                                	"avg" : {
+                                        	"field" : "age"
+                                	}
+                        	}
+                	}
+             }
+       }
+}
