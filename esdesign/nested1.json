@@ -1,0 +1,10 @@
+{
+	"name" : "Jay Asher",
+	"books": [
+		{
+			"name": "Thirteen Reason Why",
+			"genre": "YA",
+			"publisher" : "Penguin"
+		}
+	]
+}
